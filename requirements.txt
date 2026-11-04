@@ -1,0 +1,8 @@
+numpy
+laspy
+ezdxf
+scipy
+Pillow
+matplotlib
+trimesh
+open3d

@@ -1,0 +1,9 @@
+# 大容量データ・生成物
+works/
+output/
+*.exe
+_error_log.txt
+
+# Python
+__pycache__/
+*.pyc
