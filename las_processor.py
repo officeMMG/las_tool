@@ -1685,7 +1685,8 @@ def export_profile_dxf(profile: dict, output_path: str,
                         title: str = "縦断図",
                         v_scale: float = None,
                         cfg: Config = None,
-                        only: str = None) -> str:
+                        only: str = None,
+                        flip_x: bool = False) -> str:
     """
     縦断図をDXFとして出力
 
@@ -1703,6 +1704,8 @@ def export_profile_dxf(profile: dict, output_path: str,
     only : "crown"/"left"/"right"/"floor"/"center" のいずれかを指定すると、
            そのラインだけを描いた単体DXFを出力する（他4本は描かない）。
            Noneのときは従来通り5本すべてをまとめて描く。
+    flip_x : True で図を画面の左右に反転する（延長の始点が右端、終点が左端になる）。
+             左壁/右壁の扱いは変えない。目盛は元の延長値のまま表示する。
     """
     cfg = _cfg(cfg)
     if v_scale is None:
@@ -1746,9 +1749,13 @@ def export_profile_dxf(profile: dict, output_path: str,
     # 縦断図の縦横比調整（縦スケール）
     effective_v_scale = v_scale
 
+    def x_of(dist):
+        """延長→DXFのX座標（flip_x で左右反転）"""
+        return (d_max - dist) if flip_x else (dist - d_min)
+
     def to_dxf(dist, z):
         """実座標→DXF座標変換"""
-        return (dist - d_min, (z - z_min) * effective_v_scale)
+        return (x_of(dist), (z - z_min) * effective_v_scale)
 
     # ラインデータ描画
     line_configs = [
@@ -1799,7 +1806,7 @@ def export_profile_dxf(profile: dict, output_path: str,
               else cfg.profile_grid_h_long)
     gd = grid_h
     while gd <= total_len:
-        x_g = gd - d_min
+        x_g = x_of(gd)
         y_top = z_range * effective_v_scale
         msp.add_line(
             (x_g, 0), (x_g, y_top),
@@ -1844,7 +1851,7 @@ def export_profile_dxf(profile: dict, output_path: str,
         top_y = z_range * effective_v_scale
         mark_h = z_range * effective_v_scale * 0.035
         for td, mlabel in ((t0, "▽坑口(始点)"), (t1, "▽坑口(終点)")):
-            xg = td - d_min
+            xg = x_of(td)
             msp.add_line(
                 (xg, 0), (xg, top_y),
                 dxfattribs={"layer": "GRID", "color": cfg.frame_color,

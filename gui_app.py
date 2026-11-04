@@ -679,7 +679,7 @@ class App:
                 axis_use = p["axis"]
             mirror = p.get("mirror", False)
             if mirror:
-                self._log("左右ミラー: 画像を左右反転し、縦断図の左壁・右壁を入れ替えて保存します")
+                self._log("左右ミラー: 画像と縦断図を画面の左右に反転して保存します")
             first_png = None
             generated = []   # {title, dxf, png}
 
@@ -746,17 +746,17 @@ class App:
                 prof = None
                 src = ""
                 if align:
-                    prof = lp.generate_longitudinal(pts, cfg=cfg, swap_lr=mirror)
+                    prof = lp.generate_longitudinal(pts, cfg=cfg)
                     src = "alignment"
                 else:
                     centerline, src = lp.get_centerline(pts)
                     if centerline is not None and len(centerline) >= 2:
-                        prof = lp.generate_profile(pts, centerline, cfg=cfg, swap_lr=mirror)
+                        prof = lp.generate_profile(pts, centerline, cfg=cfg)
                     else:
                         self._log(f"縦断図: センターライン取得失敗（{src}）、スキップします")
                 if prof:
                     dxf = os.path.join(outdir, title + ".dxf")
-                    lp.export_profile_dxf(prof, dxf, title=title, cfg=cfg)
+                    lp.export_profile_dxf(prof, dxf, title=title, cfg=cfg, flip_x=mirror)
                     png = self._render_dxf(dxf, outdir, title)
                     first_png = first_png or png
                     generated.append({"title": title, "dxf": dxf, "png": png})
@@ -769,7 +769,7 @@ class App:
                             label = lp.PROFILE_LINE_LABELS[key]
                             item_title = f"{title}_{label}"
                             item_dxf = os.path.join(outdir, item_title + ".dxf")
-                            lp.export_profile_dxf(prof, item_dxf, title=item_title, cfg=cfg, only=key)
+                            lp.export_profile_dxf(prof, item_dxf, title=item_title, cfg=cfg, only=key, flip_x=mirror)
                             item_png = self._render_dxf(item_dxf, outdir, item_title)
                             generated.append({"title": item_title, "dxf": item_dxf, "png": item_png})
                         self._log(f"縦断図 個別出力: 天端/左壁/右壁/地面/センターを{len(lp.PROFILE_LINE_KEYS)}本のDXFに分けて保存しました")
